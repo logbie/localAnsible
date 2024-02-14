@@ -62,6 +62,33 @@
 - hosts: web
   become: yes
   tasks:
+    - name: Create a new custom user for web service
+      user:
+        name: "{{ new_user }}"
+        system: yes
+    
+    - name: Ensure custom user home directory exists
+      file:
+        path: "/home/{{ new_user }}"
+        state: directory
+        owner: "{{ new_user }}"
+        group: "{{ new_user }}"
+        mode: '0755'
+    
+    - name: Ensure www directory exists in custom user home
+      file:
+        path: "/home/{{ new_user }}/www"
+        state: directory
+        owner: "{{ new_user }}"
+        group: "{{ new_user }}"
+        mode: '0755'
+
+    - name: Configure Nginx to use PHP-FPM
+      template:
+        src: nginx-site.j2
+        dest: /etc/nginx/sites-available/default
+      notify: restart nginx
+    
     - name: Install Nginx and PHP-FPM
       apt:
         name:
@@ -69,11 +96,6 @@
           - "php{{ php_version }}-fpm"
           - "php{{ php_version }}-mysql"
         state: present
-
-    - name: Create a new custom user for web service
-      user:
-        name: "{{ new_user }}"
-        system: yes
 
     - name: Configure Nginx to use PHP-FPM
       template:
