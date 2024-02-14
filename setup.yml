@@ -1,10 +1,6 @@
 ---
 - hosts: all
   become: yes
-  vars:
-    new_user: "customuser" # Define your custom user variable
-    mysql_root_password: "YourRootPasswordHere"
-    php_version: "8.2"  # Updated PHP version to 8.2
   tasks:
     - name: Install software-properties-common
       apt:
@@ -101,6 +97,10 @@
 - hosts: web
   become: yes
   tasks:
+    - name: Debug new_user variable
+  debug:
+    var: new_user
+    
     - name: Create a new custom user for web service
       user:
         name: "{{ new_user }}"
