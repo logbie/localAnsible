@@ -67,37 +67,36 @@
         name: "{{ new_user }}"
         system: yes
 
-- name: Ensure MySQL root password is set
-  mysql_user:
-    login_user: root
-    login_password: ""  # Use the current root password if it's set, or leave empty
-    name: root
-    password: "{{ mysql_root_password }}"
-    host_all: yes
+    - name: Ensure MySQL root password is set
+      mysql_user:
+        login_user: root
+        login_password: ""  # Use the current root password if it's set, or leave empty
+        name: root
+        password: "{{ mysql_root_password }}"
+        host_all: yes
 
-- name: Remove anonymous user accounts
-  mysql_user:
-    login_user: root
-    login_password: "{{ mysql_root_password }}"
-    name: ''
-    host_all: yes
-    state: absent
+    - name: Remove anonymous user accounts
+      mysql_user:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        name: ''
+        host_all: yes
+        state: absent
 
-- name: Remove MySQL test database
-  mysql_db:
-    login_user: root
-    login_password: "{{ mysql_root_password }}"
-    name: test
-    state: absent
+    - name: Remove MySQL test database
+      mysql_db:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        name: test
+        state: absent
 
-- name: Disallow root login remotely
-  mysql_user:
-    login_user: root
-    login_password: "{{ mysql_root_password }}"
-    name: root
-    host: '%'
-    state: absent
-
+    - name: Disallow root login remotely
+      mysql_user:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        name: root
+        host: '%'
+        state: absent
 
 - hosts: web
   become: yes
@@ -106,7 +105,7 @@
       user:
         name: "{{ new_user }}"
         system: yes
-    
+
     - name: Ensure custom user home directory exists
       file:
         path: "/home/{{ new_user }}"
@@ -114,7 +113,7 @@
         owner: "{{ new_user }}"
         group: "{{ new_user }}"
         mode: '0755'
-    
+
     - name: Ensure www directory exists in custom user home
       file:
         path: "/home/{{ new_user }}/www"
@@ -123,12 +122,6 @@
         group: "{{ new_user }}"
         mode: '0755'
 
-    - name: Configure Nginx to use PHP-FPM
-      template:
-        src: nginx-site.j2
-        dest: /etc/nginx/sites-available/default
-      notify: restart nginx
-    
     - name: Install Nginx and PHP-FPM
       apt:
         name:
@@ -157,4 +150,3 @@
       service:
         name: nginx
         state: restarted
-
