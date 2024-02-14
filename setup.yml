@@ -50,6 +50,12 @@
           APT::Periodic::AutocleanInterval "7";
           APT::Periodic::Unattended-Upgrade "1";
 
+    - name: Allow SSH traffic on all hosts
+      ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
 - hosts: mysql
   become: yes
   tasks:
@@ -94,6 +100,12 @@
         host: '%'
         state: absent
 
+    - name: Allow MySQL traffic
+      ufw:
+        rule: allow
+        port: '3306'
+        proto: tcp
+
 - hosts: web
   become: yes
   tasks:    
@@ -132,14 +144,17 @@
         dest: /etc/nginx/sites-available/default
       notify: restart nginx
 
-    - name: Enable firewall and allow necessary services
+    - name: Allow HTTP traffic
       ufw:
         rule: allow
-        name: "{{ item }}"
-      loop:
-        - OpenSSH
-        - "Nginx Full"
-        - MySQL
+        port: '80'
+        proto: tcp
+
+    - name: Allow HTTPS traffic
+      ufw:
+        rule: allow
+        port: '443'
+        proto: tcp
 
   handlers:
     - name: restart nginx
@@ -147,15 +162,3 @@
         name: nginx
         state: restarted
 
-
-    - name: Check if MySQL is installed
-      command: which mysql
-      register: mysql_installed
-      ignore_errors: yes
-      changed_when: false
-
-    - name: Allow MySQL through UFW
-      ufw:
-        rule: allow
-        name: "MySQL"
-      when: mysql_installed.rc == 0
