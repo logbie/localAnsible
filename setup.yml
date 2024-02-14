@@ -96,11 +96,7 @@
 
 - hosts: web
   become: yes
-  tasks:
-    - name: Debug new_user variable
-  debug:
-    var: new_user
-    
+  tasks:    
     - name: Create a new custom user for web service
       user:
         name: "{{ new_user }}"
