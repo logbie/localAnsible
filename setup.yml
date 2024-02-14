@@ -67,12 +67,37 @@
         name: "{{ new_user }}"
         system: yes
 
-    - name: Secure MySQL installation
-      mysql_secure_installation:
-        login_password: "{{ mysql_root_password }}"
-        new_password: "{{ mysql_root_password }}"
-        user: root
-        login_unix_socket: /var/run/mysqld/mysqld.sock
+- name: Ensure MySQL root password is set
+  mysql_user:
+    login_user: root
+    login_password: ""  # Use the current root password if it's set, or leave empty
+    name: root
+    password: "{{ mysql_root_password }}"
+    host_all: yes
+
+- name: Remove anonymous user accounts
+  mysql_user:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    name: ''
+    host_all: yes
+    state: absent
+
+- name: Remove MySQL test database
+  mysql_db:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    name: test
+    state: absent
+
+- name: Disallow root login remotely
+  mysql_user:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    name: root
+    host: '%'
+    state: absent
+
 
 - hosts: web
   become: yes
