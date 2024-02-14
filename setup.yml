@@ -1,0 +1,98 @@
+---
+- hosts: all
+  become: yes
+  vars:
+    new_user: "customuser" # Define your custom user variable
+    mysql_root_password: "YourRootPasswordHere"
+    php_version: "7.4"
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+
+    - name: Install unattended upgrades
+      apt:
+        name: unattended-upgrades
+        state: present
+
+    - name: Configure unattended upgrades for security updates
+      copy:
+        dest: /etc/apt/apt.conf.d/50unattended-upgrades
+        content: |
+          Unattended-Upgrade::Allowed-Origins {
+            "${distro_id}:${distro_codename}";
+            "${distro_id}:${distro_codename}-security";
+          };
+          Unattended-Upgrade::Automatic-Reboot "true";
+
+    - name: Enable automatic updates
+      copy:
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Download-Upgradeable-Packages "1";
+          APT::Periodic::AutocleanInterval "7";
+          APT::Periodic::Unattended-Upgrade "1";
+
+- hosts: mysql
+  become: yes
+  tasks:
+    - name: Install MySQL
+      apt:
+        name: mysql-server
+        state: present
+
+    - name: Create a new custom user for MySQL service
+      user:
+        name: "{{ new_user }}"
+        system: yes
+
+    - name: Secure MySQL installation
+      mysql_secure_installation:
+        login_password: "{{ mysql_root_password }}"
+        new_password: "{{ mysql_root_password }}"
+        user: root
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- hosts: web
+  become: yes
+  tasks:
+    - name: Install Nginx and PHP-FPM
+      apt:
+        name:
+          - nginx
+          - "php{{ php_version }}-fpm"
+          - "php{{ php_version }}-mysql"
+        state: present
+
+    - name: Create a new custom user for web service
+      user:
+        name: "{{ new_user }}"
+        system: yes
+
+    - name: Configure Nginx to use PHP-FPM
+      template:
+        src: nginx-site.j2
+        dest: /etc/nginx/sites-available/default
+      notify: restart nginx
+
+    - name: Enable firewall and allow necessary services
+      ufw:
+        rule: allow
+        name: "{{ item }}"
+      loop:
+        - OpenSSH
+        - "Nginx Full"
+        - MySQL
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+
