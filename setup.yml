@@ -1,11 +1,27 @@
 ---
+---
 - hosts: all
   become: yes
   vars:
     new_user: "customuser" # Define your custom user variable
     mysql_root_password: "YourRootPasswordHere"
-    php_version: "7.4"
+    php_version: "8.2"  # Updated PHP version to 8.2
   tasks:
+    - name: Install software-properties-common
+      apt:
+        name: software-properties-common
+        state: present
+
+    - name: Add PPA for PHP
+      ansible.builtin.apt_repository:
+        repo: ppa:ondrej/php
+        state: present
+
+    - name: Add PPA for Nginx Mainline
+      ansible.builtin.apt_repository:
+        repo: ppa:ondrej/nginx-mainline
+        state: present
+
     - name: Update apt cache
       apt:
         update_cache: yes
