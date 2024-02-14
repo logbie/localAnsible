@@ -146,3 +146,16 @@
       service:
         name: nginx
         state: restarted
+
+
+    - name: Check if MySQL is installed
+      command: which mysql
+      register: mysql_installed
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Allow MySQL through UFW
+      ufw:
+        rule: allow
+        name: "MySQL"
+      when: mysql_installed.rc == 0
