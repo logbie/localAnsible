@@ -150,6 +150,12 @@
         dest: /etc/nginx/sites-available/default
       notify: restart nginx
 
+    - name: Create index.php file
+      template:
+        src: index.php.j2
+        dest: /home/{{ new_user }}/www/index.php
+      notify: restart nginx
+
     - name: Allow HTTP traffic
       ufw:
         rule: allow
