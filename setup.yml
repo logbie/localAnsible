@@ -4,7 +4,6 @@
     ansible_python_interpreter: /usr/bin/python3  # Adjust the path as necessary
   become: yes
   tasks:
-    
       tasks:
     - name: Print Python interpreter path
       debug:
