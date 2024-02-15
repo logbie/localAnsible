@@ -169,6 +169,18 @@
         dest: "/home/{{ new_user }}/www/index.php"
       notify: restart nginx
 
+    - name: Ensure Nginx starts on boot
+      ansible.builtin.systemd:
+        name: nginx
+        enabled: yes
+        state: started
+
+    - name: Ensure PHP-FPM starts on boot
+      ansible.builtin.systemd:
+        name: "php{{ php_version }}-fpm"
+        enabled: yes
+        state: started
+
     - name: Allow HTTP and HTTPS traffic
       ufw:
         rule: allow
