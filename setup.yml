@@ -107,7 +107,7 @@
         proto: tcp
     - name: Enable UFW
       ufw:
-      state: enabled
+        state: enabled
 
 
 
@@ -179,7 +179,7 @@
         - '443'
     - name: Enable UFW
       ufw:
-      state: enabled
+        state: enabled
 
   handlers:
     - name: restart nginx
