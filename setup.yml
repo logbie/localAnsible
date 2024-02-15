@@ -72,12 +72,12 @@
     - name: Ensure MySQL root password is set
       mysql_user:
         login_user: root
-        login_password: ""  # Use the current root password if it's set, or leave empty
+        login_password: ""  # Adjust as necessary
         name: root
         password: "{{ mysql_root_password }}"
         host_all: yes
 
-    - name: Remove anonymous user accounts
+    - name: Remove anonymous users
       mysql_user:
         login_user: root
         login_password: "{{ mysql_root_password }}"
@@ -85,7 +85,7 @@
         host_all: yes
         state: absent
 
-    - name: Remove MySQL test database
+    - name: Remove test database
       mysql_db:
         login_user: root
         login_password: "{{ mysql_root_password }}"
@@ -108,7 +108,7 @@
 
 - hosts: web
   become: yes
-  tasks:    
+  tasks:
     - name: Create a new custom user for web service
       user:
         name: "{{ new_user }}"
@@ -122,7 +122,7 @@
         group: "{{ new_user }}"
         mode: '0755'
 
-    - name: Ensure www directory exists in custom user home
+    - name: Ensure www directory exists
       file:
         path: "/home/{{ new_user }}/www"
         state: directory
@@ -138,17 +138,19 @@
           - "php{{ php_version }}-mysql"
         state: present
 
-    - name: Configure Nginx to use start with {{ new_user }} user
+    - name: Configure Nginx and PHP-FPM with custom user
       template:
         src: nginx.conf.j2
         dest: /etc/nginx/nginx.conf
       notify: restart nginx
 
-    - name: Configure Nginx to use start with {{ new_user }} user
+    - name: Configure PHP-FPM pool
       template:
         src: www.conf.j2
-        dest: /etc/php/{{ php_version }}/fpm/pool.d/www.conf
-      notify: restart nginx
+        dest: "/etc/php/{{ php_version }}/fpm/pool.d/www.conf"
+      notify:
+        - restart nginx
+        - restart php-fpm
 
     - name: Configure Nginx to use PHP-FPM
       template:
@@ -159,24 +161,26 @@
     - name: Create index.php file
       template:
         src: index.php.j2
-        dest: /home/{{ new_user }}/www/index.php
+        dest: "/home/{{ new_user }}/www/index.php"
       notify: restart nginx
 
-    - name: Allow HTTP traffic
+    - name: Allow HTTP and HTTPS traffic
       ufw:
         rule: allow
-        port: '80'
+        port: "{{ item }}"
         proto: tcp
-
-    - name: Allow HTTPS traffic
-      ufw:
-        rule: allow
-        port: '443'
-        proto: tcp
+      loop:
+        - '80'
+        - '443'
 
   handlers:
     - name: restart nginx
       service:
         name: nginx
+        state: restarted
+
+    - name: restart php-fpm
+      service:
+        name: "php{{ php_version }}-fpm"
         state: restarted
 
