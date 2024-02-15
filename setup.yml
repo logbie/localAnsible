@@ -86,25 +86,18 @@
         name: "{{ new_user }}"
         system: yes
 
-    - name: Attempt to ensure MySQL root password is set without a password
-      block:
-        - name: Check MySQL root access without password
-          mysql_user:
-            login_user: root
-            login_password: ""
-            name: root
-            password: "{{ mysql_root_password }}"
-            host_all: yes
-          ignore_errors: yes
-
-      rescue:
-        - name: Set MySQL root password using the new password
-          mysql_user:
-            login_user: root
-            login_password: "{{ mysql_root_password }}"
-            name: root
-            password: "{{ mysql_root_password }}"
-            host_all: yes
+    - name: Ensure root user uses mysql_native_password
+      mysql_user:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        name: root
+        host: localhost
+        password: "{{ mysql_root_password }}"
+        priv: "*.*:ALL,GRANT"
+        state: present
+        append_privs: yes
+        check_implicit_admin: yes
+        auth_plugin: mysql_native_password
 
     - name: Remove anonymous users
       mysql_user:
