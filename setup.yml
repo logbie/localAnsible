@@ -105,6 +105,11 @@
         rule: allow
         port: '3306'
         proto: tcp
+    - name: Enable UFW
+      ufw:
+      state: enabled
+
+
 
 - hosts: web
   become: yes
@@ -172,6 +177,9 @@
       loop:
         - '80'
         - '443'
+    - name: Enable UFW
+      ufw:
+      state: enabled
 
   handlers:
     - name: restart nginx
