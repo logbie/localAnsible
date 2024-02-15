@@ -19,4 +19,6 @@ git reset --hard HEAD
 # Pull the latest changes from the remote repository
 git pull
 
+chmod +x gitupdate.sh
+
 echo "Repository has been updated to the latest commit."
