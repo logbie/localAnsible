@@ -71,13 +71,9 @@
         state: present
 
     - name: Ensure PyMySQL is installed
-      hosts: mysql-server
-      become: yes  # Use sudo to install packages
-      tasks:
-        - name: Install PyMySQL using pip
-          ansible.builtin.pip:
-            name: PyMySQL
-            executable: /usr/bin/pip3  # Make sure this points to the pip executable for Python 3
+      pip:
+        name: PyMySQL
+        executable: /usr/bin/pip3  # Make sure this points to the pip executable for Python 3
 
     - name: Create a new custom user for MySQL service
       user:
