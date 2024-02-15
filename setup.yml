@@ -4,6 +4,12 @@
     ansible_python_interpreter: /usr/bin/python3  # Adjust the path as necessary
   become: yes
   tasks:
+    
+      tasks:
+    - name: Print Python interpreter path
+      debug:
+        msg: "{{ ansible_python_interpreter }}"
+    
     - name: Install software-properties-common
       apt:
         name: software-properties-common
