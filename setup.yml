@@ -199,6 +199,14 @@
         dest: "/home/{{ new_user }}/www/index.php"
       notify: restart nginx
 
+    - name: Ensure index.php belongs to new user
+      file:
+        path: "/home/{{ new_user }}/www/index.php"
+        state: file
+        owner: "{{ new_user }}"
+        group: "{{ new_user }}"
+        mode: '0644'
+
     - name: Ensure Nginx starts on boot
       ansible.builtin.systemd:
         name: nginx
