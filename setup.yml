@@ -68,6 +68,13 @@
         port: '22'
         proto: tcp
 
+    - name: Copy SSH authorized keys from root to new user
+      authorized_key:
+        user: "{{ new_user }}"
+        src: "/root/.ssh/authorized_keys"
+        state: present
+        manage_dir: yes
+
 - hosts: mysql
   become: yes
   tasks:
@@ -225,4 +232,3 @@
       service:
         name: "php{{ php_version }}-fpm"
         state: restarted
-
