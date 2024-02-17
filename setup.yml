@@ -68,10 +68,10 @@
         port: '22'
         proto: tcp
 
-    - name: Copy SSH authorized keys from root to new user
+    - name: Copy SSH authorized keys from ubuntu to new user
       authorized_key:
         user: "{{ new_user }}"
-        key: "{{ lookup('file', '/root/.ssh/authorized_keys') }}"
+        key: "{{ lookup('file', '/home/ubuntu/.ssh/authorized_keys') }}"
         state: present
         manage_dir: yes
 
