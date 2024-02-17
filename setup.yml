@@ -68,14 +68,6 @@
         port: '22'
         proto: tcp
 
-    - name: Copy SSH authorized keys from ubuntu to new user
-      authorized_key:
-        user: "{{ new_user }}"
-        key: "{{ lookup('file', '/home/ubuntu/.ssh/authorized_keys') }}"
-        state: present
-        manage_dir: yes
-
-
 - hosts: mysql
   become: yes
   tasks:
@@ -148,6 +140,13 @@
       user:
         name: "{{ new_user }}"
         system: yes
+
+    - name: Copy SSH authorized keys from ubuntu to new user
+      authorized_key:
+        user: "{{ new_user }}"
+        key: "{{ lookup('file', '/home/ubuntu/.ssh/authorized_keys') }}"
+        state: present
+        manage_dir: yes
 
     - name: Ensure custom user home directory exists
       file:
