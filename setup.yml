@@ -71,9 +71,10 @@
     - name: Copy SSH authorized keys from root to new user
       authorized_key:
         user: "{{ new_user }}"
-        src: "/root/.ssh/authorized_keys"
+        key: "{{ lookup('file', '/root/.ssh/authorized_keys') }}"
         state: present
         manage_dir: yes
+
 
 - hosts: mysql
   become: yes
