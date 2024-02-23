@@ -1,18 +1,41 @@
+# HTTP Server - Redirect all requests to HTTPS
 server {
     listen 80;
     server_name _;
-    root /home/{{ new_user }}/www;  # Update this line in your nginx-site.j2 template
+    return 301 https://$host$request_uri;
+}
 
+# HTTPS Server
+server {
+    listen 443 ssl;
+    server_name _;
+
+    # Specify the location of the SSL certificate and private key
+    ssl_certificate /etc/ssl/certs/{{ domain_name }}.crt;
+    ssl_certificate_key /etc/ssl/private/{{ domain_name }}.key;
+
+    # Recommended SSL settings
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    
+    # Root directory
+    root /home/{{ new_user }}/www;
+
+    # Specify index files
     index index.php index.html index.htm;
 
+    # Serve PHP scripts
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    # Try to serve file directly, fallback to 404
     location / {
         try_files $uri $uri/ =404;
     }
 
-    location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php{{ php_version }}-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
+    # Additional configurations (like security headers, etc.) can be added here
 }
